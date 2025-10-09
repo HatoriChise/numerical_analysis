@@ -14,10 +14,8 @@
  *
  * 包含拉格朗日插值、牛顿插值、样条插值等算法
  */
-
 namespace interpolation
 {
-
 // 前向声明（减少依赖）
 class Interpolator;
 

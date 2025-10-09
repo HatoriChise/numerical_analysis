@@ -39,32 +39,12 @@ bool validate_input(const std::vector<double> &x, const std::vector<double> &y)
  */
 std::vector<double> compute_divided_differences(const std::vector<double> &x, const std::vector<double> &y)
 {
+     if (x.size() != y.size() || x.empty())
+        throw std::invalid_argument("Invalid input data for divided differences");
     std::cout << "code not implemented" << std::endl;
     return std::vector<double>();
 }
 
-class LagrangeInterpolator
-{
-private:
-    std::vector<double> xPoints_;
-    std::vector<double> yPoints_;
-
-public:
-    LagrangeInterpolator(const std::vector<double> &x, const std::vector<double> &y) : xPoints_(x), yPoints_(y)
-    {
-        if(!validate_input(x, y))
-        {
-            throw std::invalid_argument("Invalid input data");
-        }
-    }
-
-    double interpolate(double x) const
-    {
-        /* todo */
-    }
-    
-    ~LagrangeInterpolator();
-};
 
 
 } // namespace interpolation
