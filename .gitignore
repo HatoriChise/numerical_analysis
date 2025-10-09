@@ -68,3 +68,8 @@ htmlcov/
 .Trashes
 ehthumbs.db
 Thumbs.db
+
+.git
+.gitignore
+
+.clang-format
