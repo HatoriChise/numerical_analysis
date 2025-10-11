@@ -39,7 +39,7 @@ class Interpolation(ABC):
             raise ValueError("x_data must have unique values.")
 
 class LagrangeInterpolation(Interpolation):
-    def interpolate(self, x):
+    def interpolate(self, x) -> float:
         n = len(self.x_data)
         result = 0.0
         for i in range(n):
@@ -52,7 +52,7 @@ class LagrangeInterpolation(Interpolation):
     
 def plot(x_data, y_data, interpolator, true_func=None, x_min=None, x_max=None, num_points=100):
     """
-    绘制原始数据点、插值多项式曲线和可选的真实函数曲线。
+    plot interpolation results and compare with true function.
     
     参数：
     x_data: 列表或数组，原始x数据点。
