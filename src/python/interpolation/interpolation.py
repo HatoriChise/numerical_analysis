@@ -1,62 +1,108 @@
+from abc import ABC, abstractmethod
+from typing import Union, Optional
+import matplotlib.pyplot as plt
 import numpy as np
-from typing import Union, List, Optional, Callable
-import warnings
 
-class Interpolation:
+# 尝试导入scipy，用于样条插值
+try:
+    from scipy.interpolate import CubicSpline
+    SCIPY_AVAILABLE = True
+except ImportError:
+    SCIPY_AVAILABLE = False
+    print("Warning: scipy is not installed. Cubic spline interpolation will not be available.")
+
+
+class Interpolation(ABC):
     """
-    插值基类
-    提供通用的插值功能和接口定义
+    Base class for interpolation methods.
+    Abstract class for interpolation methods.
     """
-    def __init__(self):
-        self._x_data = None
-        self._y_data = None
-        self._is_initialized = False
+    def __init__(self, x_data, y_data):
+        self.x_data = np.array(x_data)
+        self.y_data = np.array(y_data)
+        self.checkData()
     
-    def initialize(self, x_data: np.ndarray, y_data: np.ndarray) -> bool:
+    @abstractmethod
+    def interpolate(self, x):
         """
-        初始化插值数据
-        
-        Args:
-            x_data: 已知点的x坐标
-            y_data: 已知点的y坐标
-            
-        Returns:
-            bool: 初始化是否成功
+        interpolation method to be implemented by subclasses.
         """
-        if len(x_data) != len(y_data):
-            warnings.warn("x_data和y_data长度不一致")
-            return False
-        
-        if len(x_data) < 2:
-            warnings.warn("至少需要2个数据点进行插值")
-            return False
-        
-        # 检查x_data是否单调
-        if not np.all(np.diff(x_data) > 0):
-            warnings.warn("x_data应该是单调递增的")
-            return False
-        
-        self._x_data = np.array(x_data, dtype=float)
-        self._y_data = np.array(y_data, dtype=float)
-        self._is_initialized = True
-        return True
+        raise NotImplementedError("Subclasses must implement interpolate method.")
     
-    def evaluate(self, x: Union[float, np.ndarray]) -> Union[float, np.ndarray]:
+    def checkData(self):
         """
-        在给定点进行插值计算（需在子类中实现）
+        checks if x_data and y_data are valid.
         """
-        raise NotImplementedError("evaluate方法需要在子类中实现")
+        if len(self.x_data) != len(self.y_data):
+            raise ValueError("x_data and y_data must have the same length.")
+        if len(self.x_data) != len(set(self.x_data)):
+            raise ValueError("x_data must have unique values.")
+
+class LagrangeInterpolation(Interpolation):
+    def interpolate(self, x):
+        n = len(self.x_data)
+        result = 0.0
+        for i in range(n):
+            term = self.y_data[i]
+            for j in range(n):
+                if i != j:
+                    term *= (x - self.x_data[j]) / (self.x_data[i] - self.x_data[j])
+            result += term
+        return result
     
-    def __call__(self, x: Union[float, np.ndarray]) -> Union[float, np.ndarray]:
-        """使类可调用"""
-        return self.evaluate(x)
+def plot(x_data, y_data, interpolator, true_func=None, x_min=None, x_max=None, num_points=100):
+    """
+    绘制原始数据点、插值多项式曲线和可选的真实函数曲线。
     
-    @property
-    def is_initialized(self) -> bool:
-        """获取初始化状态"""
-        return self._is_initialized
+    参数：
+    x_data: 列表或数组，原始x数据点。
+    y_data: 列表或数组，原始y数据点。
+    interpolator: 插值器对象，需有interpolate方法，用于计算任意x的插值。
+    true_func: 可调用函数，可选，表示被插值的真实函数f(x)。
+    x_min: 浮点数，可选，绘图x范围的最小值。如果为None，则使用min(x_data)。
+    x_max: 浮点数，可选，绘图x范围的最大值。如果为None，则使用max(x_data)。
+    num_points: 整数，可选，用于生成曲线的点数。默认为100。
+    """
+
+    # 设置x范围
+    if x_min is None:
+        x_min = min(x_data)
+    if x_max is None:
+        x_max = max(x_data)
     
-    @property
-    def data_points(self) -> tuple:
-        """获取数据点"""
-        return (self._x_data.copy(), self._y_data.copy())
+    # 生成密集x点
+    x_dense = np.linspace(x_min, x_max, num_points)
+    
+    # 计算插值多项式在密集点上的值
+    y_interp = [interpolator.interpolate(x) for x in x_dense]
+    
+    # 绘制原始数据点
+    plt.plot(x_data, y_data, 'o', label='Original Data', markersize=8)
+    
+    # 绘制插值多项式曲线
+    plt.plot(x_dense, y_interp, '-', label='Interpolated Polynomial', linewidth=2)
+    
+    # 如果提供了真实函数，绘制真实曲线
+    if true_func is not None:
+        y_true = [true_func(x) for x in x_dense]
+        plt.plot(x_dense, y_true, '--', label='True Function', linewidth=2)
+    
+    plt.xlabel('x')
+    plt.ylabel('y')
+    plt.legend()
+    plt.grid(True)
+    plt.show()
+
+
+def main():
+    # 示例用法
+    x_data = np.linspace(-10, 10, 11)
+    y_data = 1 / (1 + x_data**2)
+    lagrange = LagrangeInterpolation(x_data, y_data)
+
+    # 绘图示例
+    plot(x_data, y_data, lagrange, true_func=lambda x: 1/(1 + x**2))
+
+
+if __name__ == "__main__":
+    main()
