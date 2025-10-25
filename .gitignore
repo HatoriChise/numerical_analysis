@@ -73,3 +73,5 @@ Thumbs.db
 .gitignore
 
 .clang-format
+
+/image

@@ -21,6 +21,13 @@ class Interpolation(ABC):
     """
 
     def __init__(self, x_data, y_data):
+        """
+        Initializes the interpolation with given data points.
+
+        Parameters:
+        x_data (array-like): x-coordinates of data points.
+        y_data (array-like): y-coordinates of data points.
+        """
         self.x_data = np.array(x_data)
         self.y_data = np.array(y_data)
         self.checkData()
